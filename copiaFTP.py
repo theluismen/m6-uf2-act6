@@ -63,6 +63,7 @@ else:
 		exit(1)
 
 # INICIAR CONEXIÓN FTP
+print()
 try:
 	print(STATUS("OK", "FTP. Attemting to connect to {}".format(FTP_IP),BOLD_GREEN))
 	ftp = FTP(FTP_IP)
@@ -77,6 +78,7 @@ except:
 	exit(1)
 
 # LISTAR ARCHIVOS DE APACHE_ROOT y METERLO EN la LISTA FILES
+print()
 print(STATUS("OK", "Listing ALL files in {}".format(APACHE_ROOT),BOLD_GREEN))
 files_count = 0
 for root,dir,dirfiles in os.walk(APACHE_ROOT):
@@ -89,6 +91,7 @@ print(STATUS("DONE", "Found {} files in {}".format(files_count,APACHE_ROOT),BOLD
 
 # RECORRER LA LISTA DE ARCHIVOS, CREAR EL DIRECTORIO SI ES PRECISO
 #Y ENVIAR EL ARCHIVO
+print()
 pushed_files_count = 0
 for file in FILES:
 	basename       = file.replace(APACHE_ROOT, '')
@@ -124,6 +127,18 @@ if pushed_files_count < files_count:
 	print(STATUS("INFO","{} out of {} were correctly pushed.".format(pushed_files_count,files_count),BOLD_YELLOW))
 else:
 	print(STATUS("OK","{} out of {} were correctly pushed.".format(pushed_files_count,files_count),BOLD_GREEN))
+
+# INICIAR APACHE PK ESTAVA STOPPED
+print()
+print(STATUS("INFO", "Starting apache2...", BOLD_YELLOW))
+STATUS_CODE = os.system("systemctl start apache2")
+if STATUS_CODE == 0:
+    print(STATUS("OK", "apache2 has been started.", BOLD_GREEN))
+else:
+    print(STATUS("ERROR", "Errors while starting apache2",BOLD_RED))
+    print(STATUS("ERROR", "Exiting...",BOLD_RED))
+    exit(1)
+
 
 # CERRAR FTP
 ftp.quit()
