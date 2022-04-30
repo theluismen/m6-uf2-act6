@@ -32,7 +32,7 @@ def STATUS( status_msg , msg , color):
 ## MAIN
 # CONTANTS
 STATUS_CODE = 0
-FTP_IP      = "192.168.1.22"
+FTP_IP      = "192.168.1.44"
 FTP_USUARIO = "luismen"
 FTP_CONTRA  = "luismenfana"
 FTP_BACKUP_DIR = "apache_copia"
@@ -77,25 +77,53 @@ except:
 	exit(1)
 
 # LISTAR ARCHIVOS DE APACHE_ROOT y METERLO EN la LISTA FILES
+print(STATUS("OK", "Listing ALL files in {}".format(APACHE_ROOT),BOLD_GREEN))
+files_count = 0
 for root,dir,dirfiles in os.walk(APACHE_ROOT):
 	for file in dirfiles:
-		FILES.append(os.path.join(root,file))
+		files_count = files_count + 1
+		fullpath_file = os.path.join(root, file)
+		print("   "+fullpath_file)
+		FILES.append(fullpath_file)
+print(STATUS("DONE", "Found {} files in {}".format(files_count,APACHE_ROOT),BOLD_GREEN))
 
 # RECORRER LA LISTA DE ARCHIVOS, CREAR EL DIRECTORIO SI ES PRECISO
 #Y ENVIAR EL ARCHIVO
+pushed_files_count = 0
 for file in FILES:
 	basename       = file.replace(APACHE_ROOT, '')
 	ftp_files_list = ftp.nlst()
 	dir 		   = os.path.dirname(basename)
 	# CREAR DIRECTORIO REMOTO
 	if dir != '' and dir not in ftp_files_list:
+		print(STATUS("INFO","{} directory doesn't exist. Will be created.".format(dir),BOLD_YELLOW))
 		try:
 			ftp.mkd(dir)
 		except:
-			print("ERROR MIENTRAS EL MKT")
+			print(STATUS("ERROR", "Error while creating {} directory.".format(dir),BOLD_RED))
+			print(STATUS("ERROR", "Exiting...",BOLD_RED))
+			exit(1)
 	#ENVIAR EL ARCHIVO
-	with open(file, 'rb') as text_file:
-		ftp.storlines('STOR {}'.format(basename), text_file)
+	try:
+		print(STATUS("INFO","Pushing {} to {}...".format(
+			file,os.path.join("/",FTP_BACKUP_DIR,basename)
+		),BOLD_YELLOW))
+		with open(file, 'rb') as text_file:
+			ftp.storlines('STOR {}'.format(basename), text_file)
+			print(STATUS("OK", "PUSHED {}".format(file),BOLD_GREEN))
+			pushed_files_count += 1
+	except:
+		print(STATUS("ERROR", "Error while pushing {} to {}.".format(
+            file,os.path.join("/",FTP_BACKUP_DIR,basename)
+        ),BOLD_RED))
+
+# MOSTRAR EL NUMERO DE ARCHIVO QUE SE TENIAN QUE ENVIAR
+# Y LOS QUE HAN SIDO ENVIADOS CON EXITO
+print()
+if pushed_files_count < files_count:
+	print(STATUS("INFO","{} out of {} were correctly pushed.".format(pushed_files_count,files_count),BOLD_YELLOW))
+else:
+	print(STATUS("OK","{} out of {} were correctly pushed.".format(pushed_files_count,files_count),BOLD_GREEN))
 
 # CERRAR FTP
 ftp.quit()
