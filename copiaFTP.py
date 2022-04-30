@@ -13,12 +13,14 @@ BOLD_STYLE  = "\033[1m"
 ENDCOLOR    = "\033[0m"
 
 ## FUNCTIONS
+
 def HAS_ROOT_PRIV():
 	is_root = True
 	if os.getuid() != 0:
 		is_root = False
 	return is_root
 
+# MENSAJE PERSONALIZADO
 def STATUS( status_msg , msg , color):
 	return "{}[ {}{} {}{}] -{} {}".format(
 		BOLD_STYLE,
@@ -46,7 +48,8 @@ if not HAS_ROOT_PRIV():
 	exit(1)
 
 # VER SI APACHE2 ESTA ACTIVO
-apache2_active = subprocess.Popen("systemctl is-active apache2".split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+apache2_active = subprocess.Popen("systemctl is-active apache2".split(),
+	stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 apache2_active = apache2_active.stdout.read().strip().decode("utf-8")
 
 if apache2_active == 'inactive':
@@ -138,7 +141,6 @@ else:
     print(STATUS("ERROR", "Errors while starting apache2",BOLD_RED))
     print(STATUS("ERROR", "Exiting...",BOLD_RED))
     exit(1)
-
 
 # CERRAR FTP
 ftp.quit()
